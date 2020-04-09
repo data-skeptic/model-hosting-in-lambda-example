@@ -12,10 +12,6 @@ variable "cache_identifier" {
   default = "cache"
 }
 
-variable "parameter_group" {
-  default = "memcached1.4"
-}
-
 variable "subnet_group" {
 }
 
