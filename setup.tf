@@ -27,13 +27,6 @@ EOF
 #
 resource "aws_security_group" "memcached" {
   vpc_id = var.vpc_id
-  region = var.region
-
-  tags {
-    Name        = "sgCacheCluster"
-    Project     = var.project
-    Environment = var.environment
-  }
 }
 
 #
@@ -57,9 +50,4 @@ resource "aws_elasticache_cluster" "memcached" {
   notification_topic_arn = "${aws_sns_topic.alarm_actions_topic.arn}"
   port                   = "11211"
 
-  tags {
-    Name        = "CacheCluster"
-    Project     = var.project
-    Environment = var.environment
-  }
 }
