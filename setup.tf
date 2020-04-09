@@ -53,7 +53,7 @@ resource "aws_elasticache_cluster" "memcached" {
   subnet_group_name      = "${var.subnet_group}"
   security_group_ids     = ["${aws_security_group.memcached.id}"]
   maintenance_window     = "${var.maintenance_window}"
-  notification_topic_arn = "${var.notification_topic_arn}"
+  notification_topic_arn = "${aws_sns_topic.alarm_actions_topic.arn}"
   port                   = "11211"
 
   tags {
@@ -61,45 +61,4 @@ resource "aws_elasticache_cluster" "memcached" {
     Project     = "${var.project}"
     Environment = "${var.environment}"
   }
-}
-
-#
-# CloudWatch resources
-#
-resource "aws_cloudwatch_metric_alarm" "cache_cpu" {
-  alarm_name          = "alarm${var.environment}MemcachedCacheClusterCPUUtilization"
-  alarm_description   = "Memcached cluster CPU utilization"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = "1"
-  metric_name         = "CPUUtilization"
-  namespace           = "AWS/ElastiCache"
-  period              = "300"
-  statistic           = "Average"
-
-  threshold = "${var.alarm_cpu_threshold_percent}"
-
-  dimensions {
-    CacheClusterId = "${aws_elasticache_cluster.memcached.id}"
-  }
-
-  alarm_actions = ["${aws_sns_topic.alarm_actions_topic}"]
-}
-
-resource "aws_cloudwatch_metric_alarm" "cache_memory" {
-  alarm_name          = "alarm${var.environment}MemcachedCacheClusterFreeableMemory"
-  alarm_description   = "Memcached cluster freeable memory"
-  comparison_operator = "LessThanThreshold"
-  evaluation_periods  = "1"
-  metric_name         = "FreeableMemory"
-  namespace           = "AWS/ElastiCache"
-  period              = "60"
-  statistic           = "Average"
-
-  threshold = "${var.alarm_memory_threshold_bytes}"
-
-  dimensions {
-    CacheClusterId = "${aws_elasticache_cluster.memcached.id}"
-  }
-
-  alarm_actions = ["${aws_sns_topic.alarm_actions_topic}"]
 }

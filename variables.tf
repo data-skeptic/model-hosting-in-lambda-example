@@ -8,15 +8,20 @@ variable "environment" {
 
 variable "vpc_id" {}
 
-variable "cache_identifier" {}
+variable "cache_identifier" {
+  default = "cache"
+}
 
 variable "parameter_group" {
   default = "memcached1.4"
 }
 
-variable "subnet_group" {}
+variable "subnet_group" {
+}
 
-variable "maintenance_window" {}
+variable "maintenance_window" {
+  default = "sun:02:30-sun:03:30"
+}
 
 variable "desired_clusters" {
   default = "1"
@@ -30,8 +35,6 @@ variable "engine_version" {
   default = "1.4.33"
 }
 
-variable "notification_topic_arn" {}
-
 variable "alarm_cpu_threshold_percent" {
   default = "75"
 }
@@ -41,6 +44,3 @@ variable "alarm_memory_threshold_bytes" {
   default = "10000000"
 }
 
-variable "alarm_actions" {
-  type = "list"
-}
