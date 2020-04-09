@@ -26,12 +26,12 @@ EOF
 # Security group resources
 #
 resource "aws_security_group" "memcached" {
-  vpc_id = "${var.vpc_id}"
+  vpc_id = var.vpc_id
 
   tags {
     Name        = "sgCacheCluster"
-    Project     = "${var.project}"
-    Environment = "${var.environment}"
+    Project     = var.project
+    Environment = var.environment
   }
 }
 
@@ -43,22 +43,22 @@ resource "aws_elasticache_cluster" "memcached" {
     create_before_destroy = true
   }
 
-  cluster_id             = "${format("%.16s-%.4s", lower(var.cache_identifier), md5(var.instance_type))}"
+  cluster_id             = "${format("%.16s-%.4s", lowevar.cache_identifier), mdvar.instance_type))}"
   engine                 = "memcached"
-  engine_version         = "${var.engine_version}"
-  node_type              = "${var.instance_type}"
-  num_cache_nodes        = "${var.desired_clusters}"
-  az_mode                = "${var.desired_clusters == 1 ? "single-az" : "cross-az"}"
-  parameter_group_name   = "${var.parameter_group}"
-  subnet_group_name      = "${var.subnet_group}"
+  engine_version         = var.engine_version
+  node_type              = var.instance_type
+  num_cache_nodes        = var.desired_clusters
+  az_mode                = "single-az"
+  parameter_group_name   = var.parameter_group
+  subnet_group_name      = var.subnet_group
   security_group_ids     = ["${aws_security_group.memcached.id}"]
-  maintenance_window     = "${var.maintenance_window}"
+  maintenance_window     = var.maintenance_window
   notification_topic_arn = "${aws_sns_topic.alarm_actions_topic.arn}"
   port                   = "11211"
 
   tags {
     Name        = "CacheCluster"
-    Project     = "${var.project}"
-    Environment = "${var.environment}"
+    Project     = var.project
+    Environment = var.environment
   }
 }
