@@ -43,7 +43,7 @@ resource "aws_elasticache_cluster" "memcached" {
     create_before_destroy = true
   }
 
-  cluster_id             = "${format("%.16s-%.4s", lowevar.cache_identifier), mdvar.instance_type))}"
+  cluster_id             = "${format("%.16s-%.4s", lower(var.cache_identifier), md5(var.instance_type))}"
   engine                 = "memcached"
   engine_version         = var.engine_version
   node_type              = var.instance_type
