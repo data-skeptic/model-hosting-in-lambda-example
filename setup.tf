@@ -51,6 +51,7 @@ resource "aws_elasticache_cluster" "memcached" {
   az_mode                = "single-az"
   parameter_group_name   = var.parameter_group
   subnet_group_name      = var.subnet_group
+  region                 = var.region
   security_group_ids     = ["${aws_security_group.memcached.id}"]
   maintenance_window     = var.maintenance_window
   notification_topic_arn = "${aws_sns_topic.alarm_actions_topic.arn}"
