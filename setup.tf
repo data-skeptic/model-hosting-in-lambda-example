@@ -1,3 +1,27 @@
+resource "aws_sns_topic" "alarm_actions_topic" {
+  name = "alarm-actions-topic"
+  delivery_policy = <<EOF
+{
+  "http": {
+    "defaultHealthyRetryPolicy": {
+      "minDelayTarget": 20,
+      "maxDelayTarget": 20,
+      "numRetries": 3,
+      "numMaxDelayRetries": 0,
+      "numNoDelayRetries": 0,
+      "numMinDelayRetries": 0,
+      "backoffFunction": "linear"
+    },
+    "disableSubscriptionOverrides": false,
+    "defaultThrottlePolicy": {
+      "maxReceivesPerSecond": 1
+    }
+  }
+}
+EOF
+}
+
+
 #
 # Security group resources
 #
@@ -58,7 +82,7 @@ resource "aws_cloudwatch_metric_alarm" "cache_cpu" {
     CacheClusterId = "${aws_elasticache_cluster.memcached.id}"
   }
 
-  alarm_actions = ["${var.alarm_actions}"]
+  alarm_actions = ["${aws_sns_topic.alarm_actions_topic}"]
 }
 
 resource "aws_cloudwatch_metric_alarm" "cache_memory" {
@@ -77,5 +101,5 @@ resource "aws_cloudwatch_metric_alarm" "cache_memory" {
     CacheClusterId = "${aws_elasticache_cluster.memcached.id}"
   }
 
-  alarm_actions = ["${var.alarm_actions}"]
+  alarm_actions = ["${aws_sns_topic.alarm_actions_topic}"]
 }
