@@ -35,6 +35,5 @@ def predict(model_id, version):
     pred = model.predict(data_dict=[req]).to_dict('records')[0]
     text = untokenize(pred)
     resp = {"text":text}
-    print(resp)
     models_db.save_prediction(resp)
     return resp
