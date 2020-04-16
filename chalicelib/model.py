@@ -1,4 +1,4 @@
-class Model(object):
+class Model:
 
 
     def __init__(self):
