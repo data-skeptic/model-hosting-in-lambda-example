@@ -10,7 +10,6 @@ class ModelsDatabase(object):
         self.blobstore = blobstore
 
 
-    # model = models_db.
     def get_model(self, model_id, version) -> Model:
         base = 'user/alex@dataskeptic.com/apps/forager' #TODO: discuss with kyle
         key = f'{base}/{model_id}/{version}'
