@@ -6,13 +6,17 @@ from ludwig.api import LudwigModel
 class ModelsDatabase(object):
 
 
-    def __init__(self, blobstore):
+    def __init__(self, blobstore, docstore):
         self.blobstore = blobstore
+        self.docstore = docstore
 
 
     def get_model(self, model_id, version) -> Model:
-        base = 'user/alex@dataskeptic.com/apps/forager' #TODO: discuss with kyle
-        key = f'{base}/{model_id}/{version}'
+        model_object_id = f'{model_id}/{version}'
+        memcache_record = self.docstore.get_document(model_object_id)
+        if memcache_record == None:
+            return 'No such model.'
+        key = memcache_record['memcache_id']
         # TODO: use MemCache?
         content = self.blobstore.get_blob(key)
         model_dir = self._extract_model_files(content)
