@@ -5,7 +5,6 @@ import furl
 from importlib import import_module
 from io import BytesIO, StringIO
 import jsons
-import pandas as pd
 from pathlib import Path
 
 
@@ -115,27 +114,6 @@ def dataframe2parquet_bytes(df):
     out_buffer.seek(0)
     bytez = out_buffer.read()
     return bytez
-
-
-def dataframe2csv(df):
-    out_buffer = StringIO()
-    df.to_csv(out_buffer, index=False)
-    out_buffer.seek(0)
-    csv = out_buffer.read()
-    return csv
-
-
-def _try_harder(df):
-    out_buffer = BytesIO()
-    for k in df.keys():
-        df[k] = df[k].astype(str).fillna('')
-    df.to_parquet(out_buffer, engine='pyarrow')
-    return out_buffer
-
-
-def parquet_bytes2dataframe(content):
-        stream = BytesIO(content)
-        return pd.read_parquet(stream)
 
 
 def get_domain(uri, furl_dict=None):
