@@ -156,6 +156,13 @@ class DynamoDocstore(Docstore):
         return True
 
 
+    def gsi_query(self, index_name, key, search_value):
+        res = self.table.query(
+                IndexName = index_name,
+                KeyConditionExpression = Key(key).eq(search_value)
+            )
+        items = res['Items']
+        return items
 
 
 
