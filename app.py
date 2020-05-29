@@ -63,12 +63,12 @@ def predict(model_id, version):
     docstore.increment_counter(f'{model_id}/{version}', 'api_calls', 1)
     t3 = time.time()
     resp = {
-        "response" : prediction,
         "time_to_get_model" : t1 - t0,
         "time_to_get_prediction" : t2 - t1,
         "time_to_increment_counter" : t3 - t2,
         "total_response_time" : t3 - t0
     }
+    resp = {**resp, **prediction}
     # models_db.save_prediction(resp)
     return jsonify(resp)
 
