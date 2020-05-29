@@ -1,0 +1,6 @@
+# Heres a comment
+*.wav
+*.png
+/models
+/spec
+*pycache/

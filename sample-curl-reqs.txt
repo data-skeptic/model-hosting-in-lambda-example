@@ -1,0 +1,14 @@
+curl localhost:5000
+curl -X POST localhost:5000/model/chitchat-dry-run-3.model/latest/predict -d '{"Question":"How are you today?"}'
+curl -X POST localhost:5000/model/speaker-verification-3.model/latest/predict -d '{"audio_path":"user/alex@dataskeptic.com/apps/forager/speech_recog_digit_data/recordings/0_jackson_0.wav"}'
+curl -X DELETE localhost:5000/model/chitchat-dry-run-3.model/latest/remove
+curl localhost:5000
+curl -X POST localhost:5000/model/chitchat-dry-run-3.model/latest/predict -d '{"Question":"How are you today?"}'
+curl -X POST localhost:5000/model/chitchat-dry-run-3.model/latest/predict -d '{"Question":"How are you today?"}'
+
+curl https://model-hosting-in-flask-example.herokuapp.com/
+curl -X POST https://model-hosting-in-flask-example.herokuapp.com/model/chitchat-dry-run-3.model/latest/predict -d '{"Question":"How are you today?"}'
+curl -X DELETE https://model-hosting-in-flask-example.herokuapp.com/model/chitchat-dry-run-3.model/latest/remove
+curl https://model-hosting-in-flask-example.herokuapp.com/
+curl -X POST https://model-hosting-in-flask-example.herokuapp.com/model/chitchat-dry-run-3.model/latest/predict -d '{"Question":"How are you today?"}'
+curl -X POST https://model-hosting-in-flask-example.herokuapp.com/model/chitchat-dry-run-3.model/latest/predict -d '{"Question":"How are you today?"}'
