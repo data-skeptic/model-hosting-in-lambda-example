@@ -6,9 +6,5 @@ curl localhost:5000
 curl -X POST localhost:5000/model/chitchat-dry-run-3.model/latest/predict -d '{"Question":"How are you today?"}'
 curl -X POST localhost:5000/model/chitchat-dry-run-3.model/latest/predict -d '{"Question":"How are you today?"}'
 
-curl https://model-hosting-in-flask-example.herokuapp.com/
-curl -X POST https://model-hosting-in-flask-example.herokuapp.com/model/chitchat-dry-run-3.model/latest/predict -d '{"Question":"How are you today?"}'
-curl -X DELETE https://model-hosting-in-flask-example.herokuapp.com/model/chitchat-dry-run-3.model/latest/remove
-curl https://model-hosting-in-flask-example.herokuapp.com/
-curl -X POST https://model-hosting-in-flask-example.herokuapp.com/model/chitchat-dry-run-3.model/latest/predict -d '{"Question":"How are you today?"}'
-curl -X POST https://model-hosting-in-flask-example.herokuapp.com/model/chitchat-dry-run-3.model/latest/predict -d '{"Question":"How are you today?"}'
+curl https://ml-pipeline.herokuapp.com/
+curl -X POST https://ml-pipeline.herokuapp.com/model/journal_club_is_kyle.model/latest/predict -d '{"filepath": "user/alex@dataskeptic.com/apps/forager/is_kyle/1/kyle357.wav"}'
