@@ -68,7 +68,10 @@ def predict(model_id, version):
         "time_to_increment_counter" : t3 - t2,
         "total_response_time" : t3 - t0
     }
-    resp = {**resp, **prediction}
+    if isinstance(prediction, dict):
+        resp = {**resp, **prediction}
+    else:
+        resp['prediction'] = prediction
     # models_db.save_prediction(resp)
     return jsonify(resp)
 
