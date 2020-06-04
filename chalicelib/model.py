@@ -33,6 +33,18 @@ class Model(object):
             entry = {self.request_key:local_image_path}
             preds = self.model.predict(data_dict=[entry]).to_dict('records')[0]
             return preds
+        elif self.type == "chalicelib.applications.ludwig.image_captioning.Request":
+            remote_image_path = req[self.request_key]
+            content = blobstore.get_blob(remote_image_path)
+            if content is None:
+                raise ValueError(f'no content for blob {remote_image_path}')
+            with open('image.png','wb') as f:
+                f.write(content)
+            local_image_path = os.path.abspath('image.png')
+            entry = {self.request_key:local_image_path}
+            preds = self.model.predict(data_dict=[entry]).to_dict('records')[0]
+            text = ludwig_qa.untokenize(preds, 'label_predictions')
+            return text
         elif self.type == "chalicelib.applications.ludwig.qa.Request":
             preds = self.model.predict(data_dict=[req]).to_dict('records')[0]
             text = ludwig_qa.untokenize(preds)
