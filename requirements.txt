@@ -7,3 +7,4 @@ furl==2.0.0
 python-dotenv==0.13.0
 soundfile==0.10.2
 scikit-image==0.14.2
+fbprophet==0.6
