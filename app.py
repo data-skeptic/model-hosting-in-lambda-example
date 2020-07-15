@@ -103,6 +103,55 @@ def load(model_id, version):
     return resp
 
 
+@app.route('/api/prophet/<app_name>', methods=['POST'])
+def prophet_predict(app_name):
+    try:
+        req = request.get_json(force=True)
+    except KeyError as e:
+        return f"post request missing key {e} \n", 500
+    except:
+        return 'Invalid JSON body \n', 500
+    t0 = time.time()
+    try:
+        model = get_fbprophet_model(app_name) # fbprophet.forecaster.Prophet
+    except KeyError as e:
+        print(e)
+        return str(e), 500
+    t1 = time.time()
+    try:
+        preds = get_fbprophet_prediction(model, req)
+    except ValueError as e:
+        print(e)
+        return str(e), 404
+    t2 = time.time()
+    resp = {
+        "time_to_get_model" : t1 - t0,
+        "time_to_get_prediction" : t2 - t1,
+        "total_response_time" : t2 - t0
+    }
+    resp['predictions'] = preds
+    return jsonify(resp)
+
+
+def get_fbprophet_model(app_name):
+    import pickle
+    import fbprophet
+    pkl_key = f"user/alex@dataskeptic.com/apps/forager/prophet-test/{app_name}.prophet.pkl"
+    if not blobstore.exists(pkl_key):
+        raise KeyError(f'no model associated with {app_name}')
+    content = blobstore.get_blob(pkl_key)
+    return pickle.loads(content)
+
+
+def get_fbprophet_prediction(model, req):
+    horizon = int(req['horizon'])
+    future = model.make_future_dataframe(periods=horizon)
+    forecast = model.predict(future)
+    preds = forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']]\
+        .tail(horizon).to_dict(orient='records')
+    return preds
+
+
 def main():
 
     app.run(debug=False, host=os.getenv("host"), port=int(os.getenv("PORT")), threaded=True)
