@@ -6,6 +6,10 @@ from ludwig.api import LudwigModel
 from threading import Thread
 import os.path
 import time
+import pickle
+import fbprophet
+
+# Make this code DRYer
 
 class WorkerThread(Thread):
 
@@ -47,6 +51,21 @@ class WorkerThread(Thread):
         self.cache[model_object_id]['model'] = model_wrapper
         return True
 
+
+    def _load_prophet_model(self, record):
+        model_object_id = record['model_id']
+        if model_object_id in self.cache:
+            return True
+        self.cache[model_object_id] = {}
+        print(model_object_id)
+        self.cache[model_object_id]['metadata'] =  record
+        pickle_key = record['pickle_key']
+        content = self.blobstore.get_blob(pickle_key)
+        model = pickle.loads(content)
+        model_wrapper = Model(model, record['type'], 'horizon')
+        self.cache[model_object_id]['model'] = model_wrapper
+        return True
+
     
     def run(self):
         # this only adds to the models, does not remove until restart.
@@ -54,6 +73,9 @@ class WorkerThread(Thread):
         user_models = self.docstore.gsi_query('OwnerIndex', 'owner', 'ludwig_api')
         for record in user_models:
             self._load_model(record)
+        prophet_models = self.docstore.gsi_query('OwnerIndex', 'owner', 'prophet_api')
+        for record in prophet_models:
+            self._load_prophet_model(record)
         self._set_status('INITIALIZED')
 
 
@@ -77,6 +99,10 @@ class ModelsDatabase(object):
             # lazy load the model
             print("model not present in cache, checking docstore")
             lookup_record = self.docstore.get_document(model_object_id)
+            if lookup_record is None: # means we're dealing with a prophet record
+                #TODO make this less polymorphic
+                raise KeyError(f'could not load model for {model_object_id}.' 
+                    'lazy load not supported for prophet models or record does not exist')
             record = self.docstore.get_document(lookup_record.get('dest_key'))
             if record:
                 # TODO: instead we should start a new thread 
@@ -113,7 +139,12 @@ class ModelsDatabase(object):
             return 'model already loaded', 500            
         lookup_record = self.docstore.get_document(model_object_id)
         record = self.docstore.get_document(lookup_record.get('dest_key'))
-        self._load_model(record)
+        if record['owner'] == 'ludwig_api':
+            self._load_model(record)
+        elif record['owner'] == 'prophet_api':
+            self._load_prophet_model(record)
+        else:
+            raise KeyError(f"no model loader for owner {record['owner']}")
         return f'loaded {model_object_id} into cache successfully \n', 200
 
     
@@ -144,6 +175,21 @@ class ModelsDatabase(object):
         model_dir = self._extract_model_files(content, model_object_id)
         model = LudwigModel.load(model_dir)
         model_wrapper = Model(model, record['type'], payload_key)
+        self.cache[model_object_id]['model'] = model_wrapper
+        return True
+
+
+    def _load_prophet_model(self, record):
+        model_object_id = record['model_id']
+        if model_object_id in self.cache:
+            return True
+        self.cache[model_object_id] = {}
+        print(model_object_id)
+        self.cache[model_object_id]['metadata'] =  record
+        pickle_key = record['pickle_key']
+        content = self.blobstore.get_blob(pickle_key)
+        model = pickle.loads(content)
+        model_wrapper = Model(model, record['type'], 'horizon')
         self.cache[model_object_id]['model'] = model_wrapper
         return True
 
