@@ -49,5 +49,21 @@ class Model(object):
             preds = self.model.predict(data_dict=[req]).to_dict('records')[0]
             text = ludwig_qa.untokenize(preds)
             return text
+        elif self.type == "chalicelib.applications.csvtools.csv2prophet.Request":
+            horizon = int(req['horizon'])
+            future = self.model.make_future_dataframe(periods=horizon)
+            forecast = self.model.predict(future)
+            out_cols = ['ds', 'yhat']
+            if 'yhat_lower' in forecast.columns:
+                out_cols += ['yhat_lower', 'yhat_upper'] 
+            preds = forecast[out_cols].tail(horizon).to_dict(orient='records')
+            return preds
         else:
             raise ValueError(f'model of type {self.type} not supported.')
+
+
+    def increment_counter(self, docstore, model_id, version):
+        if self.type == "chalicelib.applications.csvtools.csv2prophet.Request":
+            pass
+        else:
+            docstore.increment_counter(f'{model_id}/{version}', 'api_calls', 1)
