@@ -99,7 +99,7 @@ def load(model_id, version):
     try:
         resp = models_db.load_model(model_id, version)
     except:
-        return 'model load unsuccessful', 400
+        return 'model load unsuccessful', 500
     return resp
 
 

@@ -99,18 +99,21 @@ class ModelsDatabase(object):
             # lazy load the model
             print("model not present in cache, checking docstore")
             lookup_record = self.docstore.get_document(model_object_id)
-            if lookup_record is None: # means we're dealing with a prophet record
-                #TODO make this less polymorphic
-                raise KeyError(f'could not load model for {model_object_id}.' 
-                    'lazy load not supported for prophet models or record does not exist')
-            record = self.docstore.get_document(lookup_record.get('dest_key'))
+            if 'dest_key' in lookup_record:
+                other_object_id = lookup_record['dest_key']
+            else: # its a prophet model w pickle key
+                other_object_id = lookup_record['pickle_key']
+            record = self.docstore.get_document(other_object_id)
             if record:
                 # TODO: instead we should start a new thread 
                 # and in the meantime tell the user
                 # that the cache is being updated with the model
                 self._set_status('INITIALIZING')
                 print("loading model into cache")
-                self._load_model(record)
+                if record['owner'] == 'ludwig_api':
+                    self._load_model(record)
+                elif record['owner'] == 'prophet_api':
+                    self._load_prophet_model(record)
                 self._set_status('INITIALIZED')
                 return self.cache[model_object_id]['model']
         raise KeyError(f'could not load model for {model_object_id}. does not exist.')
@@ -136,7 +139,7 @@ class ModelsDatabase(object):
     def load_model(self, model_id, version):
         model_object_id = f'{model_id}/{version}'
         if model_object_id in self.cache:
-            return 'model already loaded', 500            
+            return 'model already loaded', 200            
         lookup_record = self.docstore.get_document(model_object_id)
         record = self.docstore.get_document(lookup_record.get('dest_key'))
         if record['owner'] == 'ludwig_api':
