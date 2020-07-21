@@ -141,7 +141,11 @@ class ModelsDatabase(object):
         if model_object_id in self.cache:
             return 'model already loaded', 200            
         lookup_record = self.docstore.get_document(model_object_id)
-        record = self.docstore.get_document(lookup_record.get('dest_key'))
+        if 'dest_key' in lookup_record:
+            other_object_id = lookup_record['dest_key']
+        else: # its a prophet model w pickle key
+            other_object_id = lookup_record['pickle_key']
+        record = self.docstore.get_document(other_object_id)
         if record['owner'] == 'ludwig_api':
             self._load_model(record)
         elif record['owner'] == 'prophet_api':
