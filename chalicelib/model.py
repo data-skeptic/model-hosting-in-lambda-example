@@ -4,10 +4,13 @@ import os
 class Model(object):
 
 
-    def __init__(self, model, model_type, request_key):
+    def __init__(self, model, model_type, request_key,
+        dt_col = "ds", num_col_pred = "yhat"):
         self.model = model
         self.type = model_type
         self.request_key = request_key
+        self.dt_col = dt_col
+        self.num_col_pred = num_col_pred
 
 
     def predict(self, req, blobstore):
@@ -55,8 +58,15 @@ class Model(object):
             forecast = self.model.predict(future)
             out_cols = ['ds', 'yhat']
             if 'yhat_lower' in forecast.columns:
-                out_cols += ['yhat_lower', 'yhat_upper'] 
-            preds = forecast[out_cols].tail(horizon).to_dict(orient='records')
+                out_cols += ['yhat_lower', 'yhat_upper']
+            preds_df = forecast[out_cols].tail(horizon)
+            dt_col = self.dt_col
+            num_col_pred = self.num_col_pred
+            preds_df.rename(columns={
+                "ds":dt_col,
+                "yhat":num_col_pred
+                }, inplace=True)
+            preds = preds_df.to_dict(orient='records')
             return preds
         else:
             raise ValueError(f'model of type {self.type} not supported.')
