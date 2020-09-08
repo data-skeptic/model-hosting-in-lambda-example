@@ -198,7 +198,9 @@ class ModelsDatabase(object):
         pickle_key = record['pickle_key']
         content = self.blobstore.get_blob(pickle_key)
         model = pickle.loads(content)
-        model_wrapper = Model(model, record['type'], 'horizon', record['ds_col_name'], record['yhat_col_name'])
+        ds_col_name = record.get('ds_col_name', 'ds')
+        yhat_col_name = record.get('yhat_col_name', 'yhat')
+        model_wrapper = Model(model, record['type'], 'horizon', ds_col_name, yhat_col_name)
         self.cache[model_object_id]['model'] = model_wrapper
         return True
 
