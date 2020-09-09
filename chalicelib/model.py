@@ -5,12 +5,13 @@ class Model(object):
 
 
     def __init__(self, model, model_type, request_key,
-        dt_col = "ds", num_col_pred = "yhat"):
+        dt_col = "ds", num_col_pred = "yhat", period_char = "D"):
         self.model = model
         self.type = model_type
         self.request_key = request_key
         self.dt_col = dt_col
         self.num_col_pred = num_col_pred
+        self.period_char = period_char
 
 
     def predict(self, req, blobstore):
@@ -54,7 +55,8 @@ class Model(object):
             return text
         elif self.type == "chalicelib.applications.csvtools.csv2prophet.Request":
             horizon = int(req['horizon'])
-            future = self.model.make_future_dataframe(periods=horizon)
+            period_char = self.period_char
+            future = self.model.make_future_dataframe(periods=horizon, freq=period_char)
             forecast = self.model.predict(future)
             out_cols = ['ds', 'yhat']
             if 'yhat_lower' in forecast.columns:

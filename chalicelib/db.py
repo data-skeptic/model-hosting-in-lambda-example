@@ -64,7 +64,8 @@ class WorkerThread(Thread):
         model = pickle.loads(content)
         ds_col_name = record.get('ds_col_name', 'ds')
         yhat_col_name = record.get('yhat_col_name', 'yhat')
-        model_wrapper = Model(model, record['type'], 'horizon', ds_col_name, yhat_col_name)
+        period_char = record.get('period_char', 'D')
+        model_wrapper = Model(model, record['type'], 'horizon', ds_col_name, yhat_col_name, period_char)
         self.cache[model_object_id]['model'] = model_wrapper
         return True
 
@@ -200,7 +201,8 @@ class ModelsDatabase(object):
         model = pickle.loads(content)
         ds_col_name = record.get('ds_col_name', 'ds')
         yhat_col_name = record.get('yhat_col_name', 'yhat')
-        model_wrapper = Model(model, record['type'], 'horizon', ds_col_name, yhat_col_name)
+        period_char = record.get('period_char', 'D')
+        model_wrapper = Model(model, record['type'], 'horizon', ds_col_name, yhat_col_name, period_char)
         self.cache[model_object_id]['model'] = model_wrapper
         return True
 
