@@ -13,3 +13,5 @@ curl -X POST https://ml-pipeline.herokuapp.com/model/journal_club_is_kyle.model/
 curl -X POST https://ml-pipeline.herokuapp.com/model/chitchat.model/latest/predict -d '{"Question":"How are you today?"}'
 
 curl -X POST localhost:5000/model/chitchat-dry-run.model/latest/predict -d '{"Question":"How are you today?"}'
+
+curl -X POST localhost:5000/model/prophet_api_unemployment_alex/latest/predict -d '{"horizon":"10"}'
