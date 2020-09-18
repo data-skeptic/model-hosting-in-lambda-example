@@ -9,7 +9,6 @@ import time
 import pickle
 import fbprophet
 
-# Make this code DRYer
 
 class WorkerThread(Thread):
 
@@ -82,7 +81,7 @@ class WorkerThread(Thread):
         self._set_status('INITIALIZED')
 
 
-class ModelsDatabase(object):
+class ModelsDatabase(WorkerThread):
 
 
     def __init__(self, blobstore, docstore):
@@ -161,54 +160,6 @@ class ModelsDatabase(object):
     def reload_models(self):
         thread = WorkerThread(self.status, self.cache, self.blobstore, self.docstore)
         thread.start()
-
-
-    def _extract_model_files(self, content, model_object_id):
-        file_like_object = io.BytesIO(content)
-        zipfile_ob = zipfile.ZipFile(file_like_object)
-        model_files = [x for x in zipfile_ob.namelist()] # TODO: filter unneccesary files
-        print("extracting files...")
-        zipfile_ob.extractall(f'./models/{model_object_id}', members=model_files)
-        return f'models/{model_object_id}/model'
-
-
-    def _load_model(self, record):
-        model_object_id = record['model_id']
-        if model_object_id in self.cache:
-            return True
-        self.cache[model_object_id] = {}
-        print(model_object_id)
-        self.cache[model_object_id]['metadata'] =  record
-        key = record['dest_key']
-        payload_key = list(jsons.loads(record['example1']).keys())[0]
-        content = self.blobstore.get_blob(key)
-        model_dir = self._extract_model_files(content, model_object_id)
-        model = LudwigModel.load(model_dir)
-        model_wrapper = Model(model, record['type'], payload_key)
-        self.cache[model_object_id]['model'] = model_wrapper
-        return True
-
-
-    def _load_prophet_model(self, record):
-        model_object_id = record['model_id']
-        if model_object_id in self.cache:
-            return True
-        self.cache[model_object_id] = {}
-        print(model_object_id)
-        self.cache[model_object_id]['metadata'] =  record
-        pickle_key = record['pickle_key']
-        content = self.blobstore.get_blob(pickle_key)
-        model = pickle.loads(content)
-        ds_col_name = record.get('ds_col_name', 'ds')
-        yhat_col_name = record.get('yhat_col_name', 'yhat')
-        period_char = record.get('period_char', 'D')
-        model_wrapper = Model(model, record['type'], 'horizon', ds_col_name, yhat_col_name, period_char)
-        self.cache[model_object_id]['model'] = model_wrapper
-        return True
-
-
-    def _set_status(self, new_status:str):
-        self.status['status'] = new_status
 
 
     def save_prediction(self, prediction):
