@@ -44,8 +44,9 @@ def index():
 def predict(model_id, version):
     try:
         req = request.get_json(force=True)
-    except:
-        return 'Invalid JSON body \n', 500
+    except Exception as e:
+        print(str(e))
+        return f'Invalid JSON body \n {str(e)} \n', 500
     t0 = time.time()
     try:
         model = models_db.get_model(model_id, version) # LudwigModel
@@ -80,7 +81,8 @@ def predict(model_id, version):
 def reload():
     try:
         models_db.reload_models()
-    except:
+    except Exception as e:
+        print(str(e))
         return 'reload unsuccessful', 400
     return 'reload successful', 200
 
@@ -89,7 +91,8 @@ def reload():
 def remove(model_id, version):
     try:
         resp = models_db.remove_model(model_id, version)
-    except:
+    except Exception as e:
+        print(str(e))
         return 'removal unsuccessful', 400
     return resp
 
@@ -98,7 +101,8 @@ def remove(model_id, version):
 def load(model_id, version):
     try:
         resp = models_db.load_model(model_id, version)
-    except:
+    except Exception as e:
+        print(str(e))
         return 'model load unsuccessful', 500
     return resp
 
