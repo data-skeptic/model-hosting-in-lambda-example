@@ -72,10 +72,14 @@ class WorkerThread(Thread):
     def run(self):
         # this only adds to the models, does not remove until restart.
         self._set_status('INITIALIZING')
-        user_models = self.docstore.gsi_query('OwnerIndex', 'owner', 'ludwig_api')
+        user_model_lookups = self.docstore.gsi_query('ownerIndex', 'owner', 'ludwig_api')
+        user_model_keys = [item['object_id'] for item in user_model_lookups]
+        user_models = self.docstore.get_batch_documents(keys=user_model_keys)
         for record in user_models:
             self._load_model(record)
-        prophet_models = self.docstore.gsi_query('OwnerIndex', 'owner', 'prophet_api')
+        prophet_model_lookups = self.docstore.gsi_query('ownerIndex', 'owner', 'prophet_api')
+        prophet_model_keys = [item['object_id'] for item in prophet_model_lookups]
+        prophet_models = self.docstore.get_batch_documents(keys=prophet_model_keys)
         for record in prophet_models:
             self._load_prophet_model(record)
         self._set_status('INITIALIZED')
@@ -103,8 +107,10 @@ class ModelsDatabase(WorkerThread):
             lookup_record = self.docstore.get_document(model_object_id)
             if 'dest_key' in lookup_record:
                 other_object_id = lookup_record['dest_key']
-            else: # its a prophet model w pickle key
+            elif 'pickle_key' in lookup_record: # its a prophet model w pickle key
                 other_object_id = lookup_record['pickle_key']
+            else:
+                raise KeyError('expecting either dest_key or pickle_key in lookup_record')
             record = self.docstore.get_document(other_object_id)
             if record:
                 # TODO: instead we should start a new thread 
