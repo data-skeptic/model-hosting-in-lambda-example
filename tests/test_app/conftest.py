@@ -23,15 +23,14 @@ def new_init(self, blobstore, docstore):
     self.cache = {'test/latest': MockModel(blobstore, docstore)}
     self.status = {'status':'INITIALIZED'}
 
-chalicelib.db.ModelsDatabase.__init__ = new_init
-chalicelib.db.ModelsDatabase.get_model = lambda self, x, y: MockModel(x,y)
-chalicelib.db.ModelsDatabase.reload_models = lambda x: None
-chalicelib.db.ModelsDatabase.load_model = lambda self, x, y: 'model already loaded'
-from app import app as flask_app
-
 
 @pytest.fixture
 def app():
+    chalicelib.db.ModelsDatabase.__init__ = new_init
+    chalicelib.db.ModelsDatabase.get_model = lambda self, x, y: MockModel(x,y)
+    chalicelib.db.ModelsDatabase.reload_models = lambda x: None
+    chalicelib.db.ModelsDatabase.load_model = lambda self, x, y: 'model already loaded'
+    from app import app as flask_app
     yield flask_app
 
 
