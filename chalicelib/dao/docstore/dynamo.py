@@ -1,5 +1,6 @@
 import boto3
 from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 from chalicelib.dao.docstore.abstract_docstore import AbstractDocstore as Docstore
 from chalicelib.utils import common
 import logging
@@ -16,6 +17,8 @@ class DynamoDocstore(Docstore):
     def __init__(self, table_name, access_key=None, secret_key=None):
         super().__init__()
         self.table_name = table_name
+        self.deserializer = TypeDeserializer() # To go from low-level format to python
+        self.serializer = TypeSerializer() # To go from python to low-level format
         if access_key is not None:
             #region = os.getenv("AWS_REGION")
             region = 'us-east-1'
@@ -165,5 +168,25 @@ class DynamoDocstore(Docstore):
         return items
 
 
-
-
+    def get_batch_documents(self, keys):
+        """
+        typical access pattern is to collect object_ids from a call to gsi_query with a given owner
+        and then pass the object_ids into this function to get their full records
+        """
+        res = self.client.batch_get_item(
+            RequestItems={
+                self.table_name:{'Keys': 
+                    [
+                        {'object_id':{'S':key}} for key in keys
+                    ]
+                }
+            }
+        )
+        raw_items = res['Responses'][self.table_name]
+        if res['UnprocessedKeys']:
+            print("Warning, unprocessed keys left in query results:")
+            print(res['UnprocessedKeys'])
+        items = [
+            {k: self.deserializer.deserialize(v) for k,v in item.items()} for item in raw_items
+        ]
+        return items
