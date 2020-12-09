@@ -72,14 +72,20 @@ class WorkerThread(Thread):
     def run(self):
         # this only adds to the models, does not remove until restart.
         self._set_status('INITIALIZING')
-        user_model_lookups = self.docstore.gsi_query('ownerIndex', 'owner', 'ludwig_api')
+        user_model_lookups1 = self.docstore.gsi_query('ownerIndex', 'owner', 'ludwig_api') # deprecated owner
+        user_model_lookups2 = self.docstore.gsi_query('ownerIndex', 'owner', 'model-hosting-api/ludwig')
+        user_model_lookups = user_model_lookups1 + user_model_lookups2
         user_model_keys = [item['object_id'] for item in user_model_lookups]
-        user_models = self.docstore.get_batch_documents(keys=user_model_keys)
+        unique_user_model_keys = list(set(user_model_keys))
+        user_models = self.docstore.get_batch_documents(keys=unique_user_model_keys)
         for record in user_models:
             self._load_model(record)
-        prophet_model_lookups = self.docstore.gsi_query('ownerIndex', 'owner', 'prophet_api')
+        prophet_model_lookups1 = self.docstore.gsi_query('ownerIndex', 'owner', 'prophet_api') # deprecated
+        prophet_model_lookups2 = self.docstore.gsi_query('ownerIndex', 'owner', 'model-hosting-api/prophet')
+        prophet_model_lookups = prophet_model_lookups1 + prophet_model_lookups2
         prophet_model_keys = [item['object_id'] for item in prophet_model_lookups]
-        prophet_models = self.docstore.get_batch_documents(keys=prophet_model_keys)
+        unique_prophet_model_keys = list(set(prophet_model_keys))
+        prophet_models = self.docstore.get_batch_documents(keys=unique_prophet_model_keys)
         for record in prophet_models:
             self._load_prophet_model(record)
         self._set_status('INITIALIZED')
