@@ -111,6 +111,13 @@ class ModelsDatabase(WorkerThread):
             # lazy load the model
             print("model not present in cache, checking docstore")
             lookup_record = self.docstore.get_document(model_object_id)
+            if lookup_record == None:
+                ludwig_user_lookups = self.docstore.gsi_query('ownerIndex', 'owner', 'model-hosting-api/ludwig')
+                user_models = self.docstore.get_batch_documents(keys=ludwig_user_lookups)
+                lookup_records = [r for r in user_models if r['model_id'] == model_object_id]
+                if len(lookup_record) == 0:
+                    raise KeyError(f'docstore record for {model_object_id} does not exist')
+                lookup_record = lookup_records[0]
             if 'dest_key' in lookup_record:
                 other_object_id = lookup_record['dest_key']
             elif 'pickle_key' in lookup_record: # its a prophet model w pickle key
@@ -124,7 +131,7 @@ class ModelsDatabase(WorkerThread):
                 # that the cache is being updated with the model
                 self._set_status('INITIALIZING')
                 print("loading model into cache")
-                if record['owner'] == 'ludwig_api':
+                if record['owner'] in ['ludwig_api', 'model-hosting-api/ludwig']:
                     self._load_model(record)
                 elif record['owner'] == 'prophet_api':
                     self._load_prophet_model(record)
@@ -160,7 +167,7 @@ class ModelsDatabase(WorkerThread):
         else: # its a prophet model w pickle key
             other_object_id = lookup_record['pickle_key']
         record = self.docstore.get_document(other_object_id)
-        if record['owner'] == 'ludwig_api':
+        if record['owner'] in ['ludwig_api', 'model-hosting-api/ludwig']:
             self._load_model(record)
         elif record['owner'] == 'prophet_api':
             self._load_prophet_model(record)
