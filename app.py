@@ -61,7 +61,8 @@ def predict(model_id, version):
         print(e)
         return str(e), 404
     t2 = time.time()
-    model.increment_counter(docstore, model_id, version)
+    username = models_db.cache[f'{model_id}/{version}']['metadata'].get('username', 'unknown') # TODO turn this into a method
+    model.increment_counter(docstore, username, model_id, version)
     t3 = time.time()
     resp = {
         "time_to_get_model" : t1 - t0,

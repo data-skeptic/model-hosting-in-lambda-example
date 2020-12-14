@@ -74,8 +74,8 @@ class Model(object):
             raise ValueError(f'model of type {self.type} not supported.')
 
 
-    def increment_counter(self, docstore, model_id, version):
+    def increment_counter(self, docstore, username, model_id, version):
         if self.type == "chalicelib.applications.csvtools.csv2prophet.Request":
             pass
         else:
-            docstore.increment_counter(f'{model_id}/{version}', 'api_calls', 1)
+            docstore.increment_counter(f'{username}/{model_id}/{version}', 'api_calls', 1)
