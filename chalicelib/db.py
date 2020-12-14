@@ -113,9 +113,10 @@ class ModelsDatabase(WorkerThread):
             lookup_record = self.docstore.get_document(model_object_id)
             if lookup_record == None:
                 ludwig_user_lookups = self.docstore.gsi_query('ownerIndex', 'owner', 'model-hosting-api/ludwig')
-                user_models = self.docstore.get_batch_documents(keys=ludwig_user_lookups)
+                lookup_keys = [x['object_id'] for x in ludwig_user_lookups]
+                user_models = self.docstore.get_batch_documents(keys=lookup_keys)
                 lookup_records = [r for r in user_models if r['model_id'] == model_object_id]
-                if len(lookup_record) == 0:
+                if len(lookup_records) == 0:
                     raise KeyError(f'docstore record for {model_object_id} does not exist')
                 lookup_record = lookup_records[0]
             if 'dest_key' in lookup_record:
@@ -160,8 +161,16 @@ class ModelsDatabase(WorkerThread):
     def load_model(self, model_id, version):
         model_object_id = f'{model_id}/{version}'
         if model_object_id in self.cache:
-            return 'model already loaded', 200            
+            return 'model already loaded', 200         
         lookup_record = self.docstore.get_document(model_object_id)
+        if lookup_record == None:
+            ludwig_user_lookups = self.docstore.gsi_query('ownerIndex', 'owner', 'model-hosting-api/ludwig')
+            lookup_keys = [x['object_id'] for x in ludwig_user_lookups]
+            user_models = self.docstore.get_batch_documents(keys=lookup_keys)
+            lookup_records = [r for r in user_models if r['model_id'] == model_object_id]
+            if len(lookup_records) == 0:
+                raise KeyError(f'docstore record for {model_object_id} does not exist')
+            lookup_record = lookup_records[0]
         if 'dest_key' in lookup_record:
             other_object_id = lookup_record['dest_key']
         else: # its a prophet model w pickle key
